@@ -37,7 +37,7 @@ export const fetchGitHubReleasesData = async (repoUrl: string) => {
       query FetchRepoReleasesData($repoOwner: String!, $repoName: String!) {
         repository(name: $repoName, owner: $repoOwner) {
           description
-          releases(last: 5) {
+          releases(last: 1) {
             nodes {
               name
               createdAt
