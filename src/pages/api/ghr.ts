@@ -3,11 +3,10 @@ import url from "url"
 import { App, Source } from "../../altstore-source"
 import { fetchGitHubReleasesData } from "../../api/github-releases"
 import { colorFromString } from "../../util"
-import { Query as IconQuery } from "./icon"
+import { Query as IconQuery } from "./ghr-icon"
 
 export interface Query {
-  type: "gh-releases"
-  source: string
+  repo: string
   bundleId: string
 }
 
@@ -15,7 +14,7 @@ const notNull = <T>(v: T | null): v is T => !!v
 
 export default (async (req, res) => {
   const query = (req.query as unknown) as Query
-  const repo = await fetchGitHubReleasesData(query.source)
+  const repo = await fetchGitHubReleasesData(query.repo)
 
   if (!repo) {
     res.writeHead(404, "Not found")
@@ -23,9 +22,9 @@ export default (async (req, res) => {
     return
   }
 
-  res.json({
+  return res.json({
     name: `${repo.name} Repo`,
-    identifier: `app.vercel.altrepo.${query.type}.${repo.owner.login}.${repo.name}`,
+    identifier: `app.vercel.altrepo.ghr.${repo.owner.login}.${repo.name}`,
     apps: repo.releases.nodes
       .map((release) => {
         if (!release) return null
@@ -46,9 +45,8 @@ export default (async (req, res) => {
           downloadURL: asset.downloadUrl,
           localizedDescription: release.description,
           iconURL: url.format({
-            ...url.parse("https://alt-repo.vercel.app/"),
-            pathname: "/api/icon",
-            query: { name: repo.name } as IconQuery,
+            pathname: "/api/ghr-icon",
+            query: ({ repo: query.repo } as IconQuery) as any,
           }),
           tintColor: colorFromString(repo.name),
           size: asset.size,

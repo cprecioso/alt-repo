@@ -37,7 +37,7 @@ export const fetchGitHubReleasesData = async (repoUrl: string) => {
       query FetchRepoReleasesData($repoOwner: String!, $repoName: String!) {
         repository(name: $repoName, owner: $repoOwner) {
           description
-          releases(last: 1) {
+          releases(first: 1, orderBy: { field: CREATED_AT, direction: DESC }) {
             nodes {
               name
               createdAt
@@ -60,6 +60,45 @@ export const fetchGitHubReleasesData = async (repoUrl: string) => {
             }
             ... on Organization {
               name
+            }
+          }
+        }
+      }
+    `,
+    { repoOwner, repoName }
+  )
+
+  return responseData.repository
+}
+
+export const fetchGitHubLastReleaseFile = async (repoUrl: string) => {
+  const [repoOwner, repoName] = repoUrl.split("/").slice(-2)
+
+  const responseData = await client.request<{
+    repository: {
+      releases: {
+        nodes: ({
+          releaseAssets: {
+            nodes: ({
+              name: string
+              downloadUrl: string
+            } | null)[]
+          }
+        } | null)[]
+      }
+    } | null
+  }>(
+    gql`
+      query LastRelease($repoOwner: String!, $repoName: String!) {
+        repository(name: $repoName, owner: $repoOwner) {
+          releases(first: 1, orderBy: { field: CREATED_AT, direction: DESC }) {
+            nodes {
+              releaseAssets(first: 50) {
+                nodes {
+                  name
+                  downloadUrl
+                }
+              }
             }
           }
         }
