@@ -16,7 +16,7 @@ export interface App {
   versionDescription: string
   downloadURL: string
   localizedDescription: string
-  iconURL?: string
+  iconURL: string
   tintColor: string
   size: number
   screenshotURLs: string[]

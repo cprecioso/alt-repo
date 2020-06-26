@@ -1,7 +1,9 @@
 import { NextApiHandler } from "next"
+import url from "url"
 import { App, Source } from "../../altstore-source"
 import { fetchGitHubReleasesData } from "../../api/github-releases"
 import { colorFromString } from "../../util"
+import { Query as IconQuery } from "./icon"
 
 export interface Query {
   type: "gh-releases"
@@ -23,7 +25,7 @@ export default (async (req, res) => {
 
   res.json({
     name: `${repo.name} Repo`,
-    identifier: `sh.now.altrepo.${query.type}.${repo.owner.login}.${repo.name}`,
+    identifier: `app.vercel.altrepo.${query.type}.${repo.owner.login}.${repo.name}`,
     apps: repo.releases.nodes
       .map((release) => {
         if (!release) return null
@@ -43,7 +45,11 @@ export default (async (req, res) => {
           versionDescription: release.name,
           downloadURL: asset.downloadUrl,
           localizedDescription: release.description,
-          iconURL: undefined,
+          iconURL: url.format({
+            ...url.parse("https://alt-repo.vercel.app/"),
+            pathname: "/api/icon",
+            query: { name: repo.name } as IconQuery,
+          }),
           tintColor: colorFromString(repo.name),
           size: asset.size,
           screenshotURLs: [],
